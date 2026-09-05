@@ -171,9 +171,9 @@ one read as a plus sign, one as Pac-Man, one as a file icon, and two read
 anatomically.
 
 Anatomical reading in particular is **not** detectable by pixel geometry. The
-recurring shape in both anatomical rejections was two round-capped vertical
-strokes flanking a horizontal element, so that was measured directly; the
-resulting detector was inverted, missing both marks it was built from while
+recurring shape in both anatomical rejections was a vertical or curved stroke
+beside a second detached element, so that was measured directly; the resulting
+detector was inverted, missing both marks it was built from while
 false-positiving a known-good mark of the same topology drawn in better
 proportions. The distinguishing factor is proportion and spacing, not topology. A
 check that passes bad work and rejects good work is worse than no check, so it
@@ -452,6 +452,12 @@ python scripts/build_contact_sheet.py examples/demo/ --name "Demo Brand" --out /
   anatomical-reading detector built from two real failures turned out inverted —
   it missed both source marks and rejected the known-good demo. Always test a new
   check against something that must pass, not only against things that must fail.
+- Don't review a subagent's output file before the batch reports completion, and
+  don't assume a dispatched route produced a file at all. One route was reviewed
+  mid-write and the file changed afterwards, so the verdict described an
+  intermediate artifact; the conclusion survived re-review, but only by luck.
+  Another finished having written nothing. Wait for the completion signal, verify
+  each expected path exists, and re-hash before trusting an earlier judgement.
 - Don't fix a grayscale/blur failure by adjusting colour lightness — that hides
   the problem until the mark is engraved, faxed, embroidered, or printed in one
   colour. Fix the shape.
