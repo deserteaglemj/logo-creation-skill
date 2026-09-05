@@ -54,19 +54,53 @@ in [`NOTICE.md`](NOTICE.md).
 
 ## Install
 
-```bash
-claude plugin add <this-repo>
+### As a Claude Code plugin (recommended)
+
+This repository is both a plugin and a single-plugin marketplace. From inside
+Claude Code:
+
+```
+/plugin marketplace add deserteaglemj/logo-creation-skill
+/plugin install logo-creation-skill@logo-creation
 ```
 
-Or copy `skills/logo-creation/` into your project's `.claude/skills/` or your
-global Claude Code skills directory.
+If the install summary says `Run /reload-plugins to activate.`, run that.
+Then invoke it as `/logo-creation-skill:logo-creation`, or just ask for a logo
+and the skill triggers on its own.
+
+To pick up a new release later:
+
+```
+/plugin marketplace update logo-creation
+```
+
+### By hand (any agent harness)
+
+Copy the skill directory into wherever your agent reads skills from:
+
+```bash
+git clone https://github.com/deserteaglemj/logo-creation-skill.git
+cp -R logo-creation-skill/skills/logo-creation ~/.claude/skills/
+# Hermes:  cp -R logo-creation-skill/skills/logo-creation ~/.hermes/skills/
+```
+
+The skill is self-contained: `SKILL.md`, `references/`, `scripts/`, and
+`examples/` all live under that one directory, with no paths pointing outside
+it.
 
 ## Requirements
 
-- Python 3.9+ (standard library only — no pip installs needed for the scripts)
-- One SVG-to-PNG renderer for the export step: `resvg`
-  (`npm install -g @aspect-build/resvg`), Inkscape (`brew install inkscape`),
-  or librsvg (`brew install librsvg`)
+- **Python 3.10+**, standard library only. No pip install needed to run the
+  scripts. (3.10 is the floor because the code uses PEP 604 `X | Y` type
+  syntax; CI tests 3.10, 3.12, and 3.13 on Linux, macOS, and Windows.)
+- **One SVG-to-PNG renderer**, needed only for the Phase 9 raster export:
+  librsvg (`brew install librsvg` / `apt-get install librsvg2-bin`),
+  Inkscape (`brew install inkscape`), or resvg
+  (`cargo install resvg`). `scripts/export.sh` detects whichever is present
+  and tells you what to install if none is.
+
+Everything before Phase 9 — strategy, concepts, construction, the full variant
+matrix, the validator, and the contact sheet — runs with Python alone.
 
 ## Usage
 

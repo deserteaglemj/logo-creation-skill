@@ -1,0 +1,33 @@
+{
+  "name": "logo-creation",
+  "owner": {
+    "name": "Marquis Jackson"
+  },
+  "metadata": {
+    "description": "A single-plugin marketplace distributing the logo-creation skill.",
+    "version": "2.1.0"
+  },
+  "plugins": [
+    {
+      "name": "logo-creation-skill",
+      "source": "./",
+      "description": "Design complete logo identity systems: strategy brief, parallel concept generation, automated SVG validation, and client-ready handoff",
+      "version": "2.1.0",
+      "author": {
+        "name": "Marquis Jackson"
+      },
+      "homepage": "https://github.com/deserteaglemj/logo-creation-skill",
+      "license": "MIT",
+      "keywords": [
+        "logo",
+        "svg",
+        "design",
+        "icon",
+        "branding",
+        "brand-identity",
+        "wordmark",
+        "favicon"
+      ]
+    }
+  ]
+}

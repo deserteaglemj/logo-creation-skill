@@ -28,25 +28,29 @@ if [[ -n "$ICON_SVG" ]]; then
   copy_unless_same_file "$ICON_SVG" "$OUTPUT_DIR/icon.svg"
 fi
 
-# Detect available tool
+# Detect available tool. Local binaries only: no `npx` probing, which would
+# hit the network on every run and fetch whatever currently occupies that
+# package name.
 TOOL=""
 if command -v resvg &>/dev/null; then
   TOOL="resvg"
-elif npx --yes @aspect-build/resvg --help &>/dev/null 2>&1; then
-  TOOL="npx-resvg"
-elif command -v node &>/dev/null && node -e "require('sharp')" &>/dev/null 2>&1; then
-  TOOL="sharp"
-elif command -v inkscape &>/dev/null; then
-  TOOL="inkscape"
 elif command -v rsvg-convert &>/dev/null; then
   TOOL="rsvg-convert"
+elif command -v inkscape &>/dev/null; then
+  TOOL="inkscape"
+elif command -v magick &>/dev/null; then
+  TOOL="magick"
+elif command -v node &>/dev/null && node -e "require('sharp')" &>/dev/null 2>&1; then
+  TOOL="sharp"
 else
   echo "ERROR: No SVG-to-PNG converter found."
   echo ""
   echo "Install one of the following:"
-  echo "  npm install -g @aspect-build/resvg     (recommended)"
-  echo "  brew install inkscape"
-  echo "  brew install librsvg"
+  echo "  brew install librsvg              # macOS   (rsvg-convert)"
+  echo "  apt-get install librsvg2-bin      # Debian/Ubuntu"
+  echo "  brew install inkscape             # macOS   (inkscape)"
+  echo "  cargo install resvg               # any platform with Rust"
+  echo "  npm install -g sharp-cli          # if you already live in Node"
   exit 1
 fi
 
@@ -63,9 +67,6 @@ render_svg() {
     resvg)
       resvg "$source" "$output" --width "$size"
       ;;
-    npx-resvg)
-      npx --yes @aspect-build/resvg "$source" "$output" --width "$size"
-      ;;
     sharp)
       node - "$source" "$output" "$size" <<'NODE'
         const sharp = require('sharp');
@@ -81,6 +82,9 @@ NODE
       ;;
     inkscape)
       inkscape "$source" --export-type=png --export-filename="$output" --export-width="$size"
+      ;;
+    magick)
+      magick -background none -density 1200 "$source" -resize "${size}x${size}" "$output"
       ;;
     rsvg-convert)
       rsvg-convert -w "$size" -o "$output" "$source"

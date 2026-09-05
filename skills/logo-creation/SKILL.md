@@ -317,10 +317,33 @@ a bad critique.
 
 ## PNG export prerequisites
 
-The export step requires one of: `resvg` (`npm install -g @aspect-build/resvg`),
-Inkscape (`brew install inkscape`), or librsvg (`brew install librsvg`, provides
-`rsvg-convert`). The script auto-detects which is available and tells you plainly
-if none is found — it never fabricates a successful export.
+The export step needs one SVG-to-PNG renderer on `PATH`. In detection order:
+`resvg` (`cargo install resvg`), `rsvg-convert` (`brew install librsvg` /
+`apt-get install librsvg2-bin`), `inkscape` (`brew install inkscape`),
+`magick` (ImageMagick), or Node with `sharp` installed. The script auto-detects
+which is available and tells you plainly if none is found — it never fabricates
+a successful export, and it never reaches the network to probe for one.
+
+## Running the scripts from an installed copy
+
+Every command in this file is written relative to the skill directory. When the
+skill is installed rather than checked out, resolve that directory once and use
+it:
+
+```bash
+# Claude Code plugin install
+SKILL_DIR=~/.claude/plugins/*/skills/logo-creation
+# manual copy
+SKILL_DIR=~/.claude/skills/logo-creation
+# Hermes
+SKILL_DIR=~/.hermes/skills/creative/logo-creation
+
+python3 "$SKILL_DIR/scripts/validate_svg.py" out/logo/
+```
+
+The scripts have no imports outside the standard library and read no files
+outside the directory you point them at, so they run correctly from any
+location.
 
 ## Reference files
 
