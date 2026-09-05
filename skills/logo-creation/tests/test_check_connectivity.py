@@ -21,8 +21,11 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import check_connectivity as C
 
 pytestmark = pytest.mark.skipif(
-    not shutil.which("rsvg-convert") or not shutil.which("sips"),
-    reason="needs rsvg-convert and sips",
+    not (shutil.which("rsvg-convert") or shutil.which("resvg")
+         or shutil.which("inkscape"))
+    or not (shutil.which("sips") or shutil.which("magick")
+            or shutil.which("convert")),
+    reason="needs an SVG renderer and a pixel reader",
 )
 
 HEAD = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" '
@@ -107,3 +110,59 @@ def test_antialias_specks_are_ignored_at_small_sizes(tmp_path):
                 '<rect x="60" y="60" width="1" height="1" fill="#000"/>')
     res = run(svg, "--sizes", "16")
     assert res.returncode == 0, res.stdout
+
+
+# --- portability ----------------------------------------------------------
+
+def test_pixel_reader_falls_through_to_convert(monkeypatch, tmp_path):
+    """ImageMagick 6 ships `convert`, not `magick`, and `sips` is macOS-only.
+
+    Hardcoding `sips` here is what broke this tool on Linux CI, so the fall
+    through is asserted rather than assumed.
+    """
+    real_which = shutil.which
+
+    def only_convert(name):
+        if name in ("sips", "magick"):
+            return None
+        if name == "convert":
+            return "/usr/bin/convert"
+        return real_which(name)
+
+    monkeypatch.setattr(C.shutil, "which", only_convert)
+    captured: dict[str, list[str]] = {}
+    real_run = C.subprocess.run
+
+    def fake_run(cmd, **kwargs):
+        if any("BMP3:" in str(c) for c in cmd):
+            captured["cmd"] = [str(c) for c in cmd]
+            raise RuntimeError("stop after probe")
+        return real_run(cmd, **kwargs)
+
+    monkeypatch.setattr(C.subprocess, "run", fake_run)
+    with pytest.raises(RuntimeError):
+        C.luma(tmp_path / "nonexistent.png")
+    assert captured["cmd"][0] == "convert"
+
+
+def test_missing_pixel_reader_names_every_option(monkeypatch, tmp_path):
+    real_which = shutil.which
+    monkeypatch.setattr(
+        C.shutil, "which",
+        lambda n: None if n in ("sips", "magick", "convert") else real_which(n))
+    with pytest.raises(SystemExit) as exc:
+        C.luma(tmp_path / "nonexistent.png")
+    message = str(exc.value)
+    assert "convert" in message
+    assert "ImageMagick" in message
+
+
+def test_missing_renderer_is_reported(monkeypatch, tmp_path):
+    real_which = shutil.which
+    monkeypatch.setattr(
+        C.shutil, "which",
+        lambda n: None if n in ("rsvg-convert", "resvg", "inkscape")
+        else real_which(n))
+    with pytest.raises(SystemExit) as exc:
+        C.render(tmp_path / "x.svg", 16, tmp_path / "x.png")
+    assert "renderer" in str(exc.value)

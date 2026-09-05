@@ -24,6 +24,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import shutil
 import struct
 import subprocess
 import sys
@@ -34,16 +35,40 @@ INK = 128
 
 
 def render(svg: Path, width: int, out: Path) -> None:
-    subprocess.run(
-        ["rsvg-convert", "-w", str(width), "-b", "white", str(svg), "-o", str(out)],
-        check=True, capture_output=True,
-    )
+    """Rasterise at a given width using whichever renderer is installed."""
+    if shutil.which("rsvg-convert"):
+        cmd = ["rsvg-convert", "-w", str(width), "-b", "white",
+               str(svg), "-o", str(out)]
+    elif shutil.which("resvg"):
+        cmd = ["resvg", str(svg), str(out), "--width", str(width),
+               "--background", "white"]
+    elif shutil.which("inkscape"):
+        cmd = ["inkscape", str(svg), "--export-type=png",
+               f"--export-filename={out}", f"--export-width={width}",
+               "--export-background=white"]
+    else:
+        sys.exit("no SVG renderer found: install librsvg2-bin, resvg, or inkscape")
+    subprocess.run(cmd, check=True, capture_output=True)
 
 
 def luma(png: Path) -> list[list[int]]:
+    """Rows of 0-255 luma, via BMP so no imaging dependency is needed.
+
+    Probe order matters for portability: ImageMagick 7 provides `magick`, but
+    ImageMagick 6 (still current on Ubuntu LTS) provides only `convert`, and
+    `sips` is macOS-only. Hardcoding `sips` here is what broke this on Linux.
+    """
     bmp = png.with_suffix(".bmp")
-    subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)],
-                   check=True, capture_output=True)
+    if shutil.which("sips"):
+        cmd = ["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)]
+    elif shutil.which("magick"):
+        cmd = ["magick", str(png), "BMP3:" + str(bmp)]
+    elif shutil.which("convert"):
+        cmd = ["convert", str(png), "BMP3:" + str(bmp)]
+    else:
+        sys.exit("need `sips` (macOS), or `magick`/`convert` (ImageMagick) "
+                 "to read pixels")
+    subprocess.run(cmd, check=True, capture_output=True)
     data = bmp.read_bytes()
     off = struct.unpack_from("<I", data, 10)[0]
     w = struct.unpack_from("<i", data, 18)[0]
