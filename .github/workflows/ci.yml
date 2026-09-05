@@ -58,8 +58,11 @@ jobs:
 
       - name: Collision detector passes on the example
         # Calibration guard: the thresholds must not reject a known-good mark.
+        # Also the Linux portability check - Ubuntu ships ImageMagick 6, which
+        # provides `convert` but not `magick`, so this exercises that path.
         run: |
           sudo apt-get update && sudo apt-get install -y librsvg2-bin imagemagick
+          command -v convert
           python scripts/detect_symbol_collision.py examples/demo
 
       - name: Contact sheet builds

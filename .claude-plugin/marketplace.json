@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "A single-plugin marketplace distributing the logo-creation skill.",
-    "version": "2.2.0"
+    "version": "2.2.1"
   },
   "plugins": [
     {
       "name": "logo-creation-skill",
       "source": "./",
       "description": "Design complete logo identity systems: strategy brief, parallel concept generation, automated SVG validation, and client-ready handoff",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Marquis Jackson"
       },

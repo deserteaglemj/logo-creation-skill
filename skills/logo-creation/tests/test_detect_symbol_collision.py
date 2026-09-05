@@ -171,3 +171,52 @@ def test_cli_usage_error_without_argument():
     res = subprocess.run([sys.executable, str(SCRIPT)],
                          capture_output=True, text=True, check=False)
     assert res.returncode == 2
+
+
+# --- portability ----------------------------------------------------------
+
+def test_converter_probe_accepts_imagemagick_6(monkeypatch):
+    """ImageMagick 6 ships `convert`, not `magick`.
+
+    Probing only for `magick` works on macOS and fails on Ubuntu LTS, which is
+    exactly how this broke in CI. The probe must accept either name.
+    """
+    real = shutil.which
+
+    def only_convert(name):
+        if name in ("sips", "magick"):
+            return None
+        if name == "convert":
+            return "/usr/bin/convert"
+        return real(name)
+
+    monkeypatch.setattr(D.shutil, "which", only_convert)
+    captured: dict[str, list[str]] = {}
+
+    def fake_run(cmd, **kwargs):
+        if "BMP3:" in " ".join(str(c) for c in cmd):
+            captured["cmd"] = [str(c) for c in cmd]
+            raise RuntimeError("stop after probe")
+        return real_run(cmd, **kwargs)
+
+    real_run = D.subprocess.run
+    monkeypatch.setattr(D.subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError):
+        D.collisions(DEMO / "icon-color.svg")
+    # Invoked as a bare name so PATH resolves it, not as an absolute path.
+    assert captured["cmd"][0] == "convert"
+    assert captured["cmd"][-1].startswith("BMP3:")
+
+
+def test_missing_converter_names_convert(monkeypatch):
+    """The failure message must name every accepted converter."""
+    real = shutil.which
+    monkeypatch.setattr(
+        D.shutil, "which",
+        lambda n: None if n in ("sips", "magick", "convert") else real(n))
+    with pytest.raises(SystemExit) as exc:
+        D.collisions(DEMO / "icon-color.svg")
+    message = str(exc.value)
+    assert "convert" in message
+    assert "ImageMagick" in message

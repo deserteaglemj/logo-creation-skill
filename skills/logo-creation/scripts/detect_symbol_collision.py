@@ -66,16 +66,23 @@ def _render(svg: Path, width: int, out: Path) -> None:
 
 
 def _luma(png: Path) -> list[list[int]]:
-    """Rows of 0-255 luma. Goes via BMP so no imaging dependency is needed."""
+    """Rows of 0-255 luma. Goes via BMP so no imaging dependency is needed.
+
+    Converter probing order matters for portability: ImageMagick 7 provides
+    `magick`, but ImageMagick 6 (still current on Ubuntu LTS) provides only
+    `convert`. Probing for `magick` alone works on macOS and fails on Linux.
+    """
     bmp = png.with_suffix(".bmp")
     if shutil.which("sips"):
-        subprocess.run(["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)],
-                       check=True, capture_output=True)
+        cmd = ["sips", "-s", "format", "bmp", str(png), "--out", str(bmp)]
     elif shutil.which("magick"):
-        subprocess.run(["magick", str(png), "BMP3:" + str(bmp)],
-                       check=True, capture_output=True)
+        cmd = ["magick", str(png), "BMP3:" + str(bmp)]
+    elif shutil.which("convert"):
+        cmd = ["convert", str(png), "BMP3:" + str(bmp)]
     else:
-        sys.exit("need `sips` (macOS) or `magick` (ImageMagick) to read pixels")
+        sys.exit("need `sips` (macOS), or `magick`/`convert` (ImageMagick) "
+                 "to read pixels")
+    subprocess.run(cmd, check=True, capture_output=True)
 
     data = bmp.read_bytes()
     offset = struct.unpack_from("<I", data, 10)[0]
