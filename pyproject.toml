@@ -1,6 +1,6 @@
 [project]
 name = "logo-creation-skill"
-version = "2.1.0"
+version = "2.2.0"
 description = "A Claude Code skill that designs complete logo identity systems, generates concepts in parallel, and validates them against real-world failure modes."
 readme = "README.md"
 requires-python = ">=3.10"

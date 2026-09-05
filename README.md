@@ -20,8 +20,11 @@ parallel-exploration workflow.
 5. **System** — the full variant matrix: icon, wordmark, horizontal and
    stacked lock-ups, each in color/black/white/dark-mode.
 6. **Validation** — an automated structural validator (`scripts/validate_svg.py`)
-   plus four mandatory perceptual tests: 16-pixel favicon legibility,
-   grayscale/black-white, blur, and 5-second recall.
+   plus an automated known-symbol collision detector
+   (`scripts/detect_symbol_collision.py`) that fails a mark reading as a
+   spinner, hamburger menu or dice face, plus four mandatory perceptual tests:
+   16-pixel favicon legibility, grayscale/black-white, blur, and 5-second
+   recall.
 7. **Presentation** — a self-contained HTML contact sheet that renders every
    test live via CSS, plus campaign mockups (business card, app icon,
    signage, billboard).

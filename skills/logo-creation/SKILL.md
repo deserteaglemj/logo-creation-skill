@@ -132,6 +132,46 @@ After all agents complete:
 
 Gate: the user picks one route (or an explicit hybrid, re-presented and confirmed).
 
+#### Known-symbol collision check (mandatory before presenting any route)
+
+A route can pass every structural rule and still be unusable, because it reads as
+an existing symbol before it reads as the brand. Measured on a real run: of four
+parallel routes, three were structurally clean and all three collided — a stack
+of eight bars read as a hamburger menu, eight modules in a frame read as a dice
+face, eight radial punches read as a loading spinner.
+
+Run the detector on every concept:
+
+```bash
+python scripts/detect_symbol_collision.py logos/concepts/
+```
+
+It measures the geometric signatures that cause those readings — four-fold
+rotational self-similarity, regular parallel bars, and blobs on a lattice — and
+exits non-zero on a collision. Thresholds are calibrated so a known-good mark
+still passes, so a flag means redesign, not tuning.
+
+Two arrangements cause most collisions and should never be the default when the
+brief supplies a count ("eight clients", "three pillars"):
+
+- **radial around a centre point** → spinner, compass rose, wheel, sunburst
+- **parallel equal bars** → hamburger menu, barcode, signal bars
+
+An asymmetric or nested arrangement is far safer, and asymmetry with a stated
+reason is a strength. Put this list in each subagent's context up front: agents
+given only the category-cliché avoid-list (barbells, flames, chevrons) still walk
+straight into a spinner, because a spinner is not a fitness cliché.
+
+**The detector is necessary, not sufficient.** It cannot see semantic or
+anatomical readings. One route passed every automated check and was still
+unshippable: its strongest reading was anatomical, and its second-strongest
+resolved the accent bar as an "I" so the intended "H" never landed. A pass means
+"worth a human look", never "approved" — always render each candidate and get an
+independent description of what it actually reads as.
+
+When every route collides, say so and keep the incumbent. Never present a
+colliding mark because it was expensive to generate.
+
 #### SVG Conventions (apply to every generated mark, every phase)
 
 The validator (`scripts/validate_svg.py`) enforces these:
