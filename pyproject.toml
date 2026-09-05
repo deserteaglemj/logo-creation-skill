@@ -1,0 +1,45 @@
+[project]
+name = "logo-creation-skill"
+version = "2.0.0"
+description = "A Claude Code skill that designs complete logo identity systems, generates concepts in parallel, and validates them against real-world failure modes."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Marquis Jackson" }]
+keywords = ["logo", "branding", "identity", "svg", "design", "claude", "skill"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Graphics",
+]
+# The scripts are standard-library only. Dependency-free is a feature.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/deserteaglemj/logo-creation-skill"
+Issues = "https://github.com/deserteaglemj/logo-creation-skill/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["skills/logo-creation/tests"]
+addopts = "-q"
+
+[tool.ruff]
+# Pinned explicitly so CI does not drift as ruff's defaults change.
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PL"]
+ignore = [
+    "PLR2004",  # magic values: geometry code is full of deliberate constants
+    "PLR0913",  # argument count: colour-variant builders legitimately take several
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests import the scripts after a sys.path insert, which must precede the import.
+"skills/logo-creation/tests/*" = ["E402"]
