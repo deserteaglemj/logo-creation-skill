@@ -163,11 +163,35 @@ given only the category-cliché avoid-list (barbells, flames, chevrons) still wa
 straight into a spinner, because a spinner is not a fitness cliché.
 
 **The detector is necessary, not sufficient.** It cannot see semantic or
-anatomical readings. One route passed every automated check and was still
-unshippable: its strongest reading was anatomical, and its second-strongest
-resolved the accent bar as an "I" so the intended "H" never landed. A pass means
-"worth a human look", never "approved" — always render each candidate and get an
-independent description of what it actually reads as.
+anatomical readings. Measured across two rounds of four parallel routes each —
+eight routes, zero shippable — adding the full collision list to every prompt
+eliminated geometric collisions entirely and did not prevent failure, it moved
+it. All four second-round routes were geometrically clean and still unshippable:
+one read as a plus sign, one as Pac-Man, one as a file icon, and two read
+anatomically.
+
+Anatomical reading in particular is **not** detectable by pixel geometry. The
+recurring shape in both anatomical rejections was two round-capped vertical
+strokes flanking a horizontal element, so that was measured directly; the
+resulting detector was inverted, missing both marks it was built from while
+false-positiving a known-good mark of the same topology drawn in better
+proportions. The distinguishing factor is proportion and spacing, not topology. A
+check that passes bad work and rejects good work is worse than no check, so it
+was not shipped.
+
+**Therefore an independent read is a mandatory gate, not a nicety.** Render every
+candidate and get a description of what it actually reads as, from something that
+did not design it. A pass from the automated detector means "worth a human look",
+never "approved".
+
+**Terminal shape is a suspect, not a rule.** All anatomical rejections across both
+rounds used `stroke-linecap="round"`, which suggests round caps read as organic
+bulbs. Tested directly on the shipped mark by switching it to square caps: it
+reviewed *worse*, picking up a "stylized pelvis, somewhat unsettling" reading that
+the round-cap original never drew. The correlation did not survive contact with a
+single controlled test, so treat terminal shape as one variable to try when a mark
+reads organically, not as a rule to apply pre-emptively. Proportion and spacing
+matter more than terminal geometry.
 
 When every route collides, say so and keep the incumbent. Never present a
 colliding mark because it was expensive to generate.
@@ -198,6 +222,12 @@ The validator (`scripts/validate_svg.py`) enforces these:
   `viewBox_width / 16` disappears. On a 64-unit grid that's a hard floor of 4
   units; 5-6 is comfortable. Counter-space needs at least the same clearance as
   the stroke weight, or it fills in — the single most common cause of 16px failure.
+- **Prefer `stroke-linecap="butt"` for letterform marks.** Round caps read as
+  organic bulbs rather than typographic terminals; every anatomical rejection
+  across two rounds of concept generation used round caps. Use round caps
+  deliberately, for a specific reason, not as the default. **But do not apply this
+  blind:** switching the shipped mark from round to square caps made its review
+  worse, not better. Terminal shape is a variable to test, not a rule to assume.
 
 For deeper construction discipline (grid systems, path economy, optical
 corrections, kerning, lock-up composition), read `references/svg-craft.md`
@@ -413,6 +443,15 @@ python scripts/build_contact_sheet.py examples/demo/ --name "Demo Brand" --out /
 - Don't generate near-duplicate concepts in Phase 3 — each route must be a
   genuinely different strategic idea, not a decoration variant. Running them in
   parallel makes this cheap; don't waste the parallelism on near-duplicates.
+- Don't expect a better prompt to fix a semantic failure. Measured over two
+  rounds of four parallel routes: adding the full collision list eliminated
+  geometric collisions and produced four geometrically clean routes that were all
+  still unshippable on semantic grounds. Prompt improvements move the failure
+  mode, they don't remove the need to look.
+- Don't ship a detector you haven't calibrated against a known-good mark. An
+  anatomical-reading detector built from two real failures turned out inverted —
+  it missed both source marks and rejected the known-good demo. Always test a new
+  check against something that must pass, not only against things that must fail.
 - Don't fix a grayscale/blur failure by adjusting colour lightness — that hides
   the problem until the mark is engraved, faxed, embroidered, or printed in one
   colour. Fix the shape.
