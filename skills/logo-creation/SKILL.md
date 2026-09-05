@@ -163,26 +163,32 @@ given only the category-cliché avoid-list (barbells, flames, chevrons) still wa
 straight into a spinner, because a spinner is not a fitness cliché.
 
 **The detector is necessary, not sufficient.** It cannot see semantic or
-anatomical readings. Measured across two rounds of four parallel routes each —
-eight routes, zero shippable — adding the full collision list to every prompt
-eliminated geometric collisions entirely and did not prevent failure, it moved
-it. All four second-round routes were geometrically clean and still unshippable:
-one read as a plus sign, one as Pac-Man, one as a file icon, and two read
-anatomically.
+anatomical readings. Measured across eleven candidates in three rounds — two
+rounds of four delegated routes, then three authored directly — **zero were
+shippable**, and five drew an anatomical reading. Hardening the prompt with the
+full collision list eliminated geometric collisions entirely and did not prevent
+failure, it moved it: all four second-round routes were geometrically clean and
+still unshippable, reading variously as a plus sign, Pac-Man, a file icon, or
+anatomy.
 
-Anatomical reading in particular is **not** detectable by pixel geometry. The
-recurring shape in both anatomical rejections was a vertical or curved stroke
-beside a second detached element, so that was measured directly; the resulting
-detector was inverted, missing both marks it was built from while
-false-positiving a known-good mark of the same topology drawn in better
-proportions. The distinguishing factor is proportion and spacing, not topology. A
-check that passes bad work and rejects good work is worse than no check, so it
-was not shipped.
+Anatomical reading is **not** detectable by pixel geometry, and three separate
+hypotheses about what causes it were each disproved by a single controlled test:
 
-**Therefore an independent read is a mandatory gate, not a nicety.** Render every
-candidate and get a description of what it actually reads as, from something that
-did not design it. A pass from the automated detector means "worth a human look",
-never "approved".
+- *Topology* — a detector built on the shape the failures shared came out
+  inverted, missing both marks it was built from while rejecting a known-good
+  mark of the same topology in better proportions.
+- *Terminal shape* — every anatomical rejection used round caps, so the shipped
+  mark was rebuilt with square caps. It reviewed **worse**.
+- *Colour grouping* — a candidate was recoloured to match the working mark's
+  scheme exactly. It drew a *different* anatomical reading and the letter read
+  worse.
+
+The lesson is not "try harder to detect it". Proportion and spacing appear to
+decide it, no available measurement separates them, and each plausible rule died
+on contact with one test. **So an independent read is a mandatory gate, not a
+nicety.** Render every candidate and get a description of what it actually reads
+as, from something that did not design it. A pass from the automated detector
+means "worth a human look", never "approved".
 
 **Terminal shape is a suspect, not a rule.** All anatomical rejections across both
 rounds used `stroke-linecap="round"`, which suggests round caps read as organic
@@ -308,6 +314,21 @@ require a written justification.
 Then run the four perceptual tests from `references/validation.md` — 16-pixel,
 grayscale, blur, and 5-second recall — using the contact sheet from Phase 7. Score
 each honestly. A failed test means returning to Phase 4, not lowering the bar.
+
+When two reads of the same mark disagree at different sizes, stop arguing and
+measure:
+
+```bash
+python scripts/check_connectivity.py out/logo/icon-color.svg --sizes 16 64 300
+```
+
+It counts connected ink components per size. This settled a real contradiction —
+one mark read as "one continuous stepping form" at 16px and "separate,
+disconnected pieces" at 300px — by showing it was three components at every size,
+so the disagreement was about perception, not geometry. Read the result as
+information rather than a verdict: the bundled demo is a single component, while
+another mark that reviews perfectly well is three. Disconnection only matters if
+it changes what the mark reads as.
 
 Gate: zero validator errors, and all four perceptual tests passed with reasoning
 recorded.

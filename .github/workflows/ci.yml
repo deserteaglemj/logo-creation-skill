@@ -65,6 +65,11 @@ jobs:
           command -v convert
           python scripts/detect_symbol_collision.py examples/demo
 
+      - name: Connectivity check runs on the example
+        # The demo icon is deliberately one connected component; a change that
+        # fragments it should be visible.
+        run: python scripts/check_connectivity.py examples/demo/icon-color.svg
+
       - name: Contact sheet builds
         run: |
           python scripts/build_contact_sheet.py examples/demo --name "Demo" --out /tmp/sheet.html
