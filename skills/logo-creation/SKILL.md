@@ -473,6 +473,16 @@ python scripts/build_contact_sheet.py examples/demo/ --name "Demo Brand" --out /
   anatomical-reading detector built from two real failures turned out inverted —
   it missed both source marks and rejected the known-good demo. Always test a new
   check against something that must pass, not only against things that must fail.
+- Don't build multi-line message bodies as inline shell strings when delivering a
+  batch. Long quoted heredoc-style payloads trip command-parser guards, and the
+  failure looks like the delivery tool is broken when it is not. Put the pipeline
+  in a script, pass each body as a list argument to `subprocess` with no shell,
+  and send long intro text from a file. The same sends that failed inline
+  succeeded unchanged through that path.
+- Don't gate a delivery pipeline only at the end. Gate every stage — count,
+  validate, render, stage, caption — so a dead render or a missing label fails
+  before anything is transmitted, and prove each gate rejects by inducing a real
+  failure. A gate that has never rejected anything is not known to work.
 - Don't review a subagent's output file before the batch reports completion, and
   don't assume a dispatched route produced a file at all. One route was reviewed
   mid-write and the file changed afterwards, so the verdict described an
